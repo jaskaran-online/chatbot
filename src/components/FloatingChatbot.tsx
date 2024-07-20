@@ -246,7 +246,7 @@ const FloatingChatbot: React.FC = () => {
         setAuthenticationStatus("polling");
         setMessages((prevMessages) => [
           ...prevMessages,
-          { text: "Biometric authentication request sent. Please check your iValt app and complete the authentication.", sender: "bot" },
+          { text: "Biometric authentication request sent. Please check your iVALT app and complete the authentication.", sender: "bot" },
         ]);
         pollAuthenticationStatus(phoneNumber);
       } else {
