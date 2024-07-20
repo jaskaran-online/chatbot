@@ -21,6 +21,14 @@ interface Country {
   flag: string;
 }
 
+interface ChatbotState {
+  isAuthenticated: boolean;
+  phoneNumber: string;
+  selectedCountryCode: string;
+  authStep: "country" | "phone";
+  messages: Message[];
+}
+
 const CustomOption = ({ children, ...props }: React.PropsWithChildren<any>) => {
   const { data } = props;
   return (
@@ -62,17 +70,39 @@ const FloatingChatbot: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Load state from localStorage
+    const savedState = localStorage.getItem('chatbotState');
+    if (savedState) {
+      const parsedState: ChatbotState = JSON.parse(savedState);
+      setIsAuthenticated(parsedState.isAuthenticated);
+      setPhoneNumber(parsedState.phoneNumber);
+      setSelectedCountryCode(parsedState.selectedCountryCode);
+      setAuthStep(parsedState.authStep);
+      setMessages(parsedState.messages);
+    }
+
     if (isOpen) {
       fetchCountries();
-      setMessages([
-        { text: "Welcome! Please select your country code:", sender: "bot" },
-      ]);
+      if (messages.length === 0) {
+        setMessages([
+          { text: "Welcome! Please select your country code:", sender: "bot" },
+        ]);
+      }
     }
   }, [isOpen]);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+    // Save state to localStorage
+    const stateToSave: ChatbotState = {
+      isAuthenticated,
+      phoneNumber,
+      selectedCountryCode,
+      authStep,
+      messages,
+    };
+    localStorage.setItem('chatbotState', JSON.stringify(stateToSave));
+  }, [messages, isAuthenticated, phoneNumber, selectedCountryCode, authStep]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
