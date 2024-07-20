@@ -1,16 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Loader2, MessageCircle, X } from "lucide-react";
+import { Send, Loader2, MessageCircle, X, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import Select, { components } from "react-select";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
@@ -20,10 +14,38 @@ interface Message {
 }
 
 interface Country {
+  value: string;
+  label: string;
   code: string;
   country: string;
   flag: string;
 }
+
+const CustomOption = ({ children, ...props }: React.PropsWithChildren<any>) => {
+  const { data } = props;
+  return (
+    <components.Option {...props}>
+      <div className="flex items-center">
+        <Image src={data.flag} alt={`${data.country} flag`} className="w-6 h-4 mr-2" width="30" height="30"/>
+        <span>{data.country}</span>
+        <span className="ml-auto text-gray-500">{data.code}</span>
+      </div>
+    </components.Option>
+  );
+};
+
+const CustomSingleValue = ({ children, ...props }: React.PropsWithChildren<any>) => {
+  const { data } = props;
+  return (
+    <components.SingleValue {...props}>
+      <div className="flex items-center">
+        <Image src={data.flag} alt={`${data.country} flag`} className="w-6 h-4 mr-2"  width="30" height="30"/>
+        <span>{data.country}</span>
+        <span className="ml-2 text-gray-500">{data.code}</span>
+      </div>
+    </components.SingleValue>
+  );
+};
 
 const FloatingChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -64,6 +86,8 @@ const FloatingChatbot: React.FC = () => {
       const formattedCountries = data
         .filter((country: any) => country.idd.root && country.idd.suffixes)
         .map((country: any) => ({
+          value: `${country.idd.root}${country.idd.suffixes[0]}`,
+          label: country.name.common,
           code: `${country.idd.root}${country.idd.suffixes[0]}`,
           country: country.name.common,
           flag: country.flags.svg,
@@ -84,13 +108,13 @@ const FloatingChatbot: React.FC = () => {
     }
   };
 
-  const handleCountryCodeSelect = (value: string) => {
-    setSelectedCountryCode(value);
+  const handleCountryCodeSelect = (selectedOption: Country) => {
+    setSelectedCountryCode(selectedOption.code);
     setAuthStep("phone");
     setMessages((prevMessages) => [
       ...prevMessages,
       {
-        text: `You selected ${value}. Now, please enter your phone number without the country code:`,
+        text: `You selected ${selectedOption.country} (${selectedOption.code}). Now, please enter your phone number without the country code:`,
         sender: "bot",
       },
     ]);
@@ -202,9 +226,12 @@ const FloatingChatbot: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
             transition={{ duration: 0.3 }}
-            className="fixed bottom-4 right-4 w-80 h-[500px] bg-white rounded-lg shadow-xl flex flex-col"
+            className="fixed bottom-4 right-4 w-[450px] h-[600px] bg-white rounded-lg shadow-sm flex flex-col border"
           >
-            <div className="bg-blue-500 text-white p-4 rounded-t-lg flex justify-between items-center">
+            <div className="bg-emerald-600 text-white p-4 rounded-t-lg flex justify-between items-center">
+              <div>
+                <Image src="/iVALT.png" alt="alt" width={40} height={40} className="rounded-full"/>
+              </div>
               <h3 className="font-bold">Chat with us</h3>
               <Button
                 variant="ghost"
@@ -234,10 +261,15 @@ const FloatingChatbot: React.FC = () => {
                     className={`max-w-xs p-2 rounded-lg ${
                       message.sender === "user"
                         ? "bg-blue-500 text-white"
-                        : "bg-gray-200"
+                        : "bg-gray-100 border"
                     }`}
                   >
-                    {message.text}
+                    <div className="flex items-center justify-center flex-row gap-3"> 
+                    {/* {message.sender !== "user" && <Image src="/iVALT.png" alt="alt" width={40} height={40} className="rounded-full h-[40px]"/>} */}
+                    {/* AI bot icon */}
+                    { message.sender === "bot" && <Bot className="h-8 w-8" />}
+                      <p> {message.text}</p>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -266,27 +298,18 @@ const FloatingChatbot: React.FC = () => {
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
                 ) : (
-                  <Select onValueChange={handleCountryCodeSelect}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select country code" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries.map((country) => (
-                        <SelectItem key={country.code} value={country.code} className="py-3">
-                          <div className="flex items-center">
-                            <Image
-                              src={country.flag}
-                              alt={`${country.country} flag`}
-                              className="w-5 h-5 mr-2"
-                              width={20}
-                              height={20}
-                            />
-                            {country.country} ({country.code})
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Select
+                    options={countries}
+                    onChange={handleCountryCodeSelect}
+                    placeholder="Select country code"
+                    className="react-select-container"
+                    classNamePrefix="react-select"
+                    menuPosition="fixed"
+                    components={{
+                      Option: CustomOption,
+                      SingleValue: CustomSingleValue,
+                    }}
+                  />
                 )
               ) : (
                 <div className="flex space-x-2">
