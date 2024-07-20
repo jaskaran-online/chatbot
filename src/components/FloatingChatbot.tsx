@@ -347,7 +347,7 @@ const FloatingChatbot: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
             transition={{ duration: 0.3 }}
-            className="fixed m-4 lg:bottom-8 lg:right-8 w-[390px] h-[500px] bg-white rounded-lg shadow-sm flex flex-col"
+            className="fixed m-4 lg:bottom-8 lg:right-8 w-full sm:w-[390px] h-[500px] bg-white rounded-lg shadow-sm flex flex-col"
           >
             <ChatHeader onClose={() => {
               setIsOpen(false);
