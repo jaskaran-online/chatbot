@@ -267,7 +267,7 @@ const FloatingChatbot: React.FC = () => {
                     <div className="flex items-center justify-center flex-row gap-3"> 
                     {/* {message.sender !== "user" && <Image src="/iVALT.png" alt="alt" width={40} height={40} className="rounded-full h-[40px]"/>} */}
                     {/* AI bot icon */}
-                    { message.sender === "bot" && <Bot className="h-8 w-8" />}
+                    { message.sender === "bot" && <Bot className="h-8 w-8" height={20} width={20} />}
                       <p> {message.text}</p>
                     </div>
                   </div>
