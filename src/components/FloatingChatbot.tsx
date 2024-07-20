@@ -163,6 +163,8 @@ const FloatingChatbot: React.FC = () => {
       ]);
       setInput("");
       setIsLoading(true);
+      
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       try {
         const response = await fetch(
@@ -211,7 +213,7 @@ const FloatingChatbot: React.FC = () => {
             transition={{ duration: 0.3 }}
           >
             <Button
-              className="fixed bottom-4 right-4 rounded-full w-16 h-16 bg-blue-500 hover:bg-blue-600 flex items-center justify-center shadow-lg"
+              className="fixed bottom-8 right-8 rounded-full w-16 h-16 bg-blue-500 hover:bg-blue-600 flex items-center justify-center shadow-lg"
               onClick={() => setIsOpen(true)}
             >
               <MessageCircle className="h-8 w-8 text-white" />
@@ -236,7 +238,10 @@ const FloatingChatbot: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  setSelectedCountryCode("");
+                }}
               >
                 <X className="h-6 w-6" />
               </Button>
@@ -265,8 +270,6 @@ const FloatingChatbot: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center justify-center flex-row gap-3"> 
-                    {/* {message.sender !== "user" && <Image src="/iVALT.png" alt="alt" width={40} height={40} className="rounded-full h-[40px]"/>} */}
-                    {/* AI bot icon */}
                     { message.sender === "bot" && <Bot className="h-8 w-8" height={20} width={20} />}
                       <p> {message.text}</p>
                     </div>
@@ -329,7 +332,7 @@ const FloatingChatbot: React.FC = () => {
                   <Button
                     onClick={handleSend}
                     disabled={
-                      isLoading || (!isAuthenticated && authStep === "country")
+                      isLoading || (!isAuthenticated && authStep === "country") || input === ""
                     }
                   >
                     <Send className="h-4 w-4" />
