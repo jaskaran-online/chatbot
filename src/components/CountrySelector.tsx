@@ -36,7 +36,11 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({
     ) : (
       <Select
         options={countries}
-        onChange={handleCountryCodeSelect}
+        onChange={(selectedOption) => {
+          if (selectedOption) {
+            handleCountryCodeSelect(selectedOption as Country);
+          }
+        }}
         placeholder="Select country code"
         className="react-select-container"
         classNamePrefix="react-select"

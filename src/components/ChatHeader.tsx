@@ -8,7 +8,7 @@ interface ChatHeaderProps {
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ onClose }) => (
-  <div className="bg-emerald-600 text-white p-4 rounded-t-lg flex justify-between items-center">
+  <div className="bg-gray-900  text-white p-4 rounded-t-lg flex justify-between items-center">
     <div>
       <Image src="/iVALT.png" alt="iVALT logo" width={40} height={40} className="rounded-full"/>
     </div>

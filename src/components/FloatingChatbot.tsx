@@ -1,18 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Loader2, MessageCircle, X, Bot } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import Select, { components } from "react-select";
+import { components } from "react-select";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-
-// New component imports
-import ChatHeader from './ChatHeader';
-import ChatMessages from './ChatMessages';
-import ChatInput from './ChatInput';
-import CountrySelector from './CountrySelector';
+import ChatHeader from "./ChatHeader";
+import ChatInput from "./ChatInput";
+import ChatMessages from "./ChatMessages";
+import CountrySelector from "./CountrySelector";
 
 interface Message {
   text: string;
@@ -204,7 +201,7 @@ const FloatingChatbot: React.FC = () => {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer YOUR_OPENAI_API_KEY_HERE`,
+              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
             },
             body: JSON.stringify({
               model: "gpt-3.5-turbo",
@@ -240,9 +237,9 @@ const FloatingChatbot: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          'x-api-key': 'Dga3IZIAEm2pp5VckTwdt3N1EH6KcCLJ2v5UQ2X3',
+          'x-api-key': `Dga3IZIAEm2pp5VckTwdt3N1EH6KcCLJ2v5UQ2X3`,
         },
-        body: JSON.stringify({ mobile: phoneNumber }),
+        body: JSON.stringify({ mobile: phoneNumber, requestFrom: 'iVALT AI Chatbot' }),
       });
 
       if (response.ok) {
@@ -286,9 +283,9 @@ const FloatingChatbot: React.FC = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            'x-api-key': 'Dga3IZIAEm2pp5VckTwdt3N1EH6KcCLJ2v5UQ2X3',
+            'x-api-key': `Dga3IZIAEm2pp5VckTwdt3N1EH6KcCLJ2v5UQ2X3`,
           },
-          body: JSON.stringify({ mobile: phoneNumber }),
+          body: JSON.stringify({ mobile: phoneNumber, requestFrom: 'iVALT AI Chatbot' }),
         });
         console.log(response)
         if (response.status === 200) {
@@ -331,21 +328,16 @@ const FloatingChatbot: React.FC = () => {
 
   return (
     <>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {!isOpen && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          <div>
             <Button
-              className="fixed bottom-8 right-8 rounded-full w-16 h-16 bg-blue-500 hover:bg-blue-600 flex items-center justify-center shadow-lg"
+              className="fixed bottom-12 right-12 rounded-full w-16 h-16 bg-blue-500 hover:bg-blue-600 flex items-center justify-center shadow-lg"
               onClick={() => setIsOpen(true)}
             >
               <MessageCircle className="h-8 w-8 text-white" />
             </Button>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
       <AnimatePresence>
@@ -355,7 +347,7 @@ const FloatingChatbot: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
             transition={{ duration: 0.3 }}
-            className="fixed bottom-4 right-4 w-[450px] h-[600px] bg-white rounded-lg shadow-sm flex flex-col border"
+            className="fixed m-4 lg:bottom-8 lg:right-8 w-[420px] h-[500px] bg-white rounded-lg shadow-sm flex flex-col"
           >
             <ChatHeader onClose={() => {
               setIsOpen(false);
