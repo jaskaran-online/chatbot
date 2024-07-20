@@ -58,6 +58,7 @@ const FloatingChatbot: React.FC = () => {
   const [authStep, setAuthStep] = useState<"country" | "phone">("country");
   const [countries, setCountries] = useState<Country[]>([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [authenticationStatus, setAuthenticationStatus] = useState<"idle" | "requesting" | "polling" | "authenticated" | "failed">("idle");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -135,14 +136,7 @@ const FloatingChatbot: React.FC = () => {
 
           if (/^\+\d{10,14}$/.test(fullPhoneNumber)) {
             setPhoneNumber(fullPhoneNumber);
-            setIsAuthenticated(true);
-            setMessages((prevMessages) => [
-              ...prevMessages,
-              {
-                text: "Thank you! You're now authenticated. How can I help you today?",
-                sender: "bot",
-              },
-            ]);
+            await initiateAuthentication(fullPhoneNumber);
           } else {
             setMessages((prevMessages) => [
               ...prevMessages,
@@ -164,6 +158,7 @@ const FloatingChatbot: React.FC = () => {
       setInput("");
       setIsLoading(true);
       
+      // Simulating API call delay
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       try {
@@ -200,6 +195,102 @@ const FloatingChatbot: React.FC = () => {
         setIsLoading(false);
       }
     }
+  };
+
+  const initiateAuthentication = async (phoneNumber: string) => {
+    setAuthenticationStatus("requesting");
+    try {
+      const response = await fetch("https://api.ivalt.com/biometric-auth-request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          'x-api-key': 'Dga3IZIAEm2pp5VckTwdt3N1EH6KcCLJ2v5UQ2X3',
+        },
+        body: JSON.stringify({ mobile: phoneNumber }),
+      });
+
+      if (response.ok) {
+        setAuthenticationStatus("polling");
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { text: "Biometric authentication request sent. Please check your iValt app and complete the authentication.", sender: "bot" },
+        ]);
+        pollAuthenticationStatus(phoneNumber);
+      } else {
+        throw new Error("Failed to initiate authentication");
+      }
+    } catch (error) {
+      console.error("Error initiating authentication:", error);
+      setAuthenticationStatus("failed");
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { text: "Sorry, we couldn't initiate the authentication process. Please try again later.", sender: "bot" },
+      ]);
+    }
+  };
+
+  const pollAuthenticationStatus = async (phoneNumber: string) => {
+    let attempts = 0;
+    const maxAttempts = 150; // 5 minutes (150 * 2 seconds)
+
+    const pollInterval = setInterval(async () => {
+      attempts++;
+      if (attempts > maxAttempts) {
+        clearInterval(pollInterval);
+        setAuthenticationStatus("failed");
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { text: "Authentication timed out. Please try again.", sender: "bot" },
+        ]);
+        return;
+      }
+
+      try {
+        const response = await fetch("https://api.ivalt.com/biometric-auth-result", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            'x-api-key': 'Dga3IZIAEm2pp5VckTwdt3N1EH6KcCLJ2v5UQ2X3',
+          },
+          body: JSON.stringify({ mobile: phoneNumber }),
+        });
+        console.log(response)
+        if (response.status === 200) {
+          const data = await response.json();
+          clearInterval(pollInterval);
+          setAuthenticationStatus("authenticated");
+          setIsAuthenticated(true);
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { text: `Authentication successful!           \n\n Hi, ${data?.data?.details?.name} How can I help you today?`, sender: "bot" },
+          ]);
+        } else if (response.status === 422) {
+          // Continue polling
+        } else if (response.status === 404) {
+          clearInterval(pollInterval);
+          setAuthenticationStatus("failed");
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { text: "User not found. Please check your phone number and try again.", sender: "bot" },
+          ]);
+        } else if (response.status === 403) {
+          clearInterval(pollInterval);
+          setAuthenticationStatus("failed");
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { text: "Authentication failed. Please try again.", sender: "bot" },
+          ]);
+        }
+      } catch (error) {
+        console.error("Error polling authentication status:", error);
+        clearInterval(pollInterval);
+        setAuthenticationStatus("failed");
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { text: "Sorry, we encountered an error while checking your authentication status. Please try again later.", sender: "bot" },
+        ]);
+      }
+    }, 4000);
   };
 
   return (
