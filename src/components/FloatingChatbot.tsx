@@ -8,6 +8,12 @@ import Select, { components } from "react-select";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
+// New component imports
+import ChatHeader from './ChatHeader';
+import ChatMessages from './ChatMessages';
+import ChatInput from './ChatInput';
+import CountrySelector from './CountrySelector';
+
 interface Message {
   text: string;
   sender: "user" | "bot";
@@ -351,116 +357,31 @@ const FloatingChatbot: React.FC = () => {
             transition={{ duration: 0.3 }}
             className="fixed bottom-4 right-4 w-[450px] h-[600px] bg-white rounded-lg shadow-sm flex flex-col border"
           >
-            <div className="bg-emerald-600 text-white p-4 rounded-t-lg flex justify-between items-center">
-              <div>
-                <Image src="/iVALT.png" alt="alt" width={40} height={40} className="rounded-full"/>
-              </div>
-              <h3 className="font-bold">Chat with us</h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setIsOpen(false);
-                  setSelectedCountryCode("");
-                }}
-              >
-                <X className="h-6 w-6" />
-              </Button>
-            </div>
-            <motion.div
-              className="flex-1 overflow-y-auto p-4 space-y-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              {messages.map((message, index) => (
-                <motion.div
-                  key={index}
-                  className={`flex ${
-                    message.sender === "user" ? "justify-end" : "justify-start"
-                  }`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <div
-                    className={`max-w-xs p-2 rounded-lg ${
-                      message.sender === "user"
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 border"
-                    }`}
-                  >
-                    <div className="flex items-center justify-center flex-row gap-3"> 
-                    { message.sender === "bot" && <Bot className="h-8 w-8" height={20} width={20} />}
-                      <p> {message.text}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-              {isLoading && (
-                <motion.div
-                  className="flex justify-start"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <div className="max-w-xs p-2 rounded-lg bg-gray-200">
-                    Thinking...
-                  </div>
-                </motion.div>
-              )}
-              <div ref={messagesEndRef} />
-            </motion.div>
-            <motion.div
-              className="p-4 border-t"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              {!isAuthenticated && authStep === "country" ? (
-                isLoadingCountries ? (
-                  <div className="w-full flex items-center justify-center">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  </div>
-                ) : (
-                  <Select
-                    options={countries}
-                    onChange={handleCountryCodeSelect}
-                    placeholder="Select country code"
-                    className="react-select-container"
-                    classNamePrefix="react-select"
-                    menuPosition="fixed"
-                    components={{
-                      Option: CustomOption,
-                      SingleValue: CustomSingleValue,
-                    }}
-                  />
-                )
-              ) : (
-                <div className="flex space-x-2">
-                  <Input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleSend()}
-                    placeholder={
-                      isAuthenticated
-                        ? "Type a message..."
-                        : "Enter your phone number..."
-                    }
-                    className="flex-1"
-                    disabled={isLoading}
-                  />
-                  <Button
-                    onClick={handleSend}
-                    disabled={
-                      isLoading || (!isAuthenticated && authStep === "country") || input === ""
-                    }
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </motion.div>
+            <ChatHeader onClose={() => {
+              setIsOpen(false);
+              setSelectedCountryCode("");
+            }} />
+            <ChatMessages 
+              messages={messages}
+              isLoading={isLoading}
+              messagesEndRef={messagesEndRef}
+            />
+            {!isAuthenticated && authStep === "country" ? (
+              <CountrySelector 
+                isLoadingCountries={isLoadingCountries}
+                countries={countries}
+                handleCountryCodeSelect={handleCountryCodeSelect}
+              />
+            ) : (
+              <ChatInput 
+                input={input}
+                setInput={setInput}
+                handleSend={handleSend}
+                isLoading={isLoading}
+                isAuthenticated={isAuthenticated}
+                authStep={authStep}
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
