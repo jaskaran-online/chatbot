@@ -10,6 +10,7 @@ import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
 import ChatMessages from "./ChatMessages";
 import CountrySelector from "./CountrySelector";
+import {countriesData} from "@/contants/countries"
 
 interface Message {
   text: string;
@@ -113,10 +114,8 @@ const FloatingChatbot: React.FC = () => {
 
   const fetchCountries = async () => {
     try {
-      const response = await fetch(
-        "https://restcountries.com/v3.1/all?fields=name,flags,idd"
-      );
-      const data = await response.json();
+
+      const data = countriesData;
       const formattedCountries = data
         .filter((country: any) => country.idd.root && country.idd.suffixes)
         .map((country: any) => ({
@@ -125,8 +124,8 @@ const FloatingChatbot: React.FC = () => {
           code: `${country.idd.root}${country.idd.suffixes[0]}`,
           country: country.name.common,
           flag: country.flags.svg,
-        }))
-        .sort((a: any, b: any) => a.country.localeCompare(b.country));
+        }));
+        // .sort((a: any, b: any) => a.country.localeCompare(b.country));
       setCountries(formattedCountries);
     } catch (error) {
       console.error("Error fetching countries:", error);
